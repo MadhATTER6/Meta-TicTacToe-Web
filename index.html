@@ -1,0 +1,245 @@
+<html>
+  <head>
+    <title>Meta TicTacToe</title>
+    <style type="text/css">
+    #canvas-container
+    { margin: 0px auto;
+    }
+    h1
+    { text-align: center;
+    }
+    </style>
+    <script type="text/javascript">
+      /* settings and setup */
+      var settings = {
+        minorpad:  8,
+        majorpad: 10,
+        stroke1:   2,
+        stroke2:   4,
+        strokeColor: '#000',
+        disabledColor: '#ccc',
+        bgColor: '#fff',
+        width:   450
+      }
+      var canvas;
+      var context;
+      var game;
+    </script>
+    <script type="text/javascript">
+      /* game logic */
+      function Board()
+      { this[0] = [null, null, null];
+        this[1] = [null, null, null];
+        this[2] = [null, null, null];
+        this.get = function(i, j)
+        { return this[i][j];
+        }
+        // Board.set returns true if this mark has won the board, false otherwise
+        this.set = function(i, j, mark)
+        { if (0<=i && i<3 && 0<=j && j<3)
+            this[i][j] = mark;
+          else return false;
+          // across
+          var count = 0;
+          for (var jj = 0; jj < 3; jj++)
+          { if (this[i][jj] == mark)
+              count++;
+            else break;
+          }
+          if (count == 3)
+            return true;
+          // down
+          count = 0;
+          for (var ii = 0; ii < 3; ii++)
+          {  if (this[ii][j] == mark)
+              count++;
+            else break;
+          }
+          if (count == 3)
+            return true;
+          // diagonal (i==j)
+          if (i == j &&
+              this[0][0] == mark &&
+              this[1][1] == mark &&
+              this[2][2] == mark)
+            return true;
+          if (i+j == 2 &&
+              this[0][2] == mark &&
+              this[1][1] == mark &&
+              this[2][0] == mark)
+            return true;
+          return false;
+        }
+        this.printable = function(blank)
+        { if (!blank)
+            blank = "-";
+          var b = [];
+          for (var i = 0; i < 3; i++)
+          { var s = "";
+            for (var j in this[i])
+            { s += " " + ((this[i][j] == null)?blank:this[i][j]);
+            }
+            b.push(s+ " ");
+          }
+          return b;
+        }
+      }
+      //singleton GameBoard object
+      game = new function()
+      { this.metaboard = new Board();
+        this.boards = [[new Board(), new Board(), new Board()],
+                       [new Board(), new Board(), new Board()],
+                       [new Board(), new Board(), new Board()]
+                      ];
+        this.currentMark = 'x';
+        this.currenti = null;
+        this.currentj = null;
+        this.nextMark = function()
+        { this.currentMark = this.currentMark == 'x'?'o':'x';
+        }
+        this.mark = function(boardi, boardj, i, j)
+        { if (0 <= i && i < 3 && 0 <= j && j < 3 &&
+              (this.currenti == null ||
+                (boardi == this.currenti && boardj == this.currentj)
+              ) &&
+              this.metaboard.get(boardi, boardj) == null &&
+              this.boards[boardi][boardj].get(i, j) == null
+             )
+          { if (this.boards[boardi][boardj].set(i, j, this.currentMark))
+              this.metaboard.set(boardi, boardj, this.currentMark);
+            if (!this.metaboard.get(i, j))
+            { this.currenti = i;
+              this.currentj = j;
+            }
+            else
+            { this.currenti = null;
+              this.currentj = null;
+            }
+            this.nextMark();
+            return true;
+          }
+          else
+            return false;
+        }
+        this.printable = function()
+        { var b = [];
+          for (i in this.boards)
+          { var l1 = "";
+            var l2 = "";
+            var l3 = "";
+            for (j in this.boards[i])
+            { var l = this.boards[i][j].printable(" ");
+              l1 += l[0] + "|";
+              l2 += l[1] + "|";
+              l3 += l[2] + "|";
+            }
+            b.push(l1.substring(0,l1.length-1));
+            b.push(l2.substring(0,l2.length-1));
+            b.push(l3.substring(0,l3.length-1));
+            b.push("-----------------------");
+          }
+          b.pop();
+          return b;
+        }
+      }
+      function print(o)
+      { var s = "";
+        var p = o.printable();
+        for (i in p)
+        { s += p[i]+"\n";
+        }
+        console.log(s);
+      }
+    </script>
+    <script type="text/javascript">
+      function drawBoard(board, x, y, w)
+      { w = w/3
+        context.beginPath();
+        context.moveTo(x+w, y);
+        context.lineTo(x+w, y+3*w);
+        context.moveTo(x+2*w, y);
+        context.lineTo(x+2*w, y+3*w);
+        context.moveTo(x, y+w);
+        context.lineTo(x+3*w, y+w);
+        context.moveTo(x, y+2*w);
+        context.lineTo(x+3*w, y+2*w);
+        context.stroke();
+        for (var i = 0; i < 3; i++)
+        { for (var j = 0; j < 3; j++)
+          { if (board[i][j] == 'o')
+              drawO(x+i*w+settings.minorpad, y+j*w+settings.minorpad, w-2*settings.minorpad);
+            else if (board[i][j] == 'x')
+              drawX(x+i*w+settings.minorpad, y+j*w+settings.minorpad, w-2*settings.minorpad);
+          }
+        }
+      }
+      function drawO(x, y, w)
+      { w = w/2;
+        context.beginPath();
+        context.arc(x+w, y+w, w, 0, 2*Math.PI);
+        context.stroke();
+      }
+      function drawX(x, y, w)
+      { context.beginPath();
+        context.moveTo(x,y);
+        context.lineTo(x+w, y+w);
+        context.moveTo(x+w, y);
+        context.lineTo(x, y+w);
+        context.stroke();
+      }
+      function draw(gameboard)
+      { context.fillStyle = settings.disabledColor;
+        if (gameboard.currenti != null)
+        { context.fillRect(0, 0, settings.width, settings.width);
+          w = settings.width/3;
+          context.clearRect(game.currenti*w, game.currentj*w, w, w);
+        }
+        else
+        { context.clearRect(0, 0, settings.width, settings.width);
+          for (var i = 0; i < 3; i++)
+          { for (var j = 0; j < 3; j++)
+            { if (gameboard.metaboard[i][j])
+                context.fillRect(i*w, j*w, w, w);
+            }
+          }
+        }
+        context.lineWidth = settings.stroke2;
+        drawBoard(gameboard.metaboard, 0, 0, settings.width);
+        context.lineWidth = settings.stroke1;
+        for (var i = 0; i < 3; i++)
+        { for (var j = 0; j < 3; j++)
+          { drawBoard(gameboard.boards[i][j],
+                      i*settings.width/3 +   settings.majorpad,  //x
+                      j*settings.width/3 +   settings.majorpad,  //y
+                        settings.width/3 - 2*settings.majorpad); //w
+          }
+        }
+      }
+    </script>
+  </head>
+  <body>
+    <h1>Meta TicTacToe</h1>
+    <div id="canvas-container">
+      <canvas width="450" height="450"></canvas>
+    </div>
+  </body>
+  <script type="text/javascript">
+    canvasContainer = document.getElementById('canvas-container');
+    canvasContainer.setAttribute('style', 'width: '  + settings.width + '; ' +
+                                          'height: ' + settings.width + ';');
+    canvas = document.getElementsByTagName("canvas")[0];
+    canvas.setAttribute('style', 'background: ' + settings.bgColor + ';');
+    canvas.width = settings.width;
+    canvas.height = settings.width;
+    canvas.onclick = function (e)
+    { boardi = Math.floor(e.offsetX*3/settings.width);
+      boardj = Math.floor(e.offsetY*3/settings.width);
+      i = Math.floor(Math.floor(9*e.offsetX/settings.width)%3);
+      j = Math.floor(Math.floor(9*e.offsetY/settings.width)%3);
+      game.mark(boardi, boardj, i, j);
+      draw(game);
+    }
+    context = canvas.getContext("2d");
+    draw(game);
+  </script>
+</html>
