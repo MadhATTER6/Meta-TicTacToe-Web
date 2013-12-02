@@ -12,11 +12,12 @@
     <script type="text/javascript">
       /* settings and setup */
       var settings = {
-        minorpad:  8,
-        majorpad: 10,
+        minorpad:  9,
+        majorpad:  9,
         stroke1:   2,
         stroke2:   4,
         strokeColor: '#000',
+        mouseoverColor: '888',
         disabledColor: '#ccc',
         bgColor: '#fff',
         width:   450
@@ -150,29 +151,23 @@
         }
         console.log(s);
       }
+      function translateCoords(x, y)
+      { boardi = Math.floor(x*3/settings.width);
+        boardj = Math.floor(y*3/settings.width);
+        i = Math.floor(Math.floor(9*x/settings.width)%3);
+        j = Math.floor(Math.floor(9*y/settings.width)%3);
+        return { 0:      boardi,
+                 boardi: boardi,
+                 1:      boardj,
+                 boardj: boardj,
+                 2:      i,
+                 i:      i,
+                 3:      j,
+                 j:      j
+               }
+      }
     </script>
     <script type="text/javascript">
-      function drawBoard(board, x, y, w)
-      { w = w/3
-        context.beginPath();
-        context.moveTo(x+w, y);
-        context.lineTo(x+w, y+3*w);
-        context.moveTo(x+2*w, y);
-        context.lineTo(x+2*w, y+3*w);
-        context.moveTo(x, y+w);
-        context.lineTo(x+3*w, y+w);
-        context.moveTo(x, y+2*w);
-        context.lineTo(x+3*w, y+2*w);
-        context.stroke();
-        for (var i = 0; i < 3; i++)
-        { for (var j = 0; j < 3; j++)
-          { if (board[i][j] == 'o')
-              drawO(x+i*w+settings.minorpad, y+j*w+settings.minorpad, w-2*settings.minorpad);
-            else if (board[i][j] == 'x')
-              drawX(x+i*w+settings.minorpad, y+j*w+settings.minorpad, w-2*settings.minorpad);
-          }
-        }
-      }
       function drawO(x, y, w)
       { w = w/2;
         context.beginPath();
@@ -187,11 +182,37 @@
         context.lineTo(x, y+w);
         context.stroke();
       }
-      function draw(gameboard)
+      function drawBoard(board, x, y, w)
+      { w = w/3;
+        context.beginPath();
+        context.moveTo(x+w, y);
+        context.lineTo(x+w, y+3*w);
+        context.moveTo(x+2*w, y);
+        context.lineTo(x+2*w, y+3*w);
+        context.moveTo(x, y+w);
+        context.lineTo(x+3*w, y+w);
+        context.moveTo(x, y+2*w);
+        context.lineTo(x+3*w, y+2*w);
+        context.stroke();
+        for (var i = 0; i < 3; i++)
+        { for (var j = 0; j < 3; j++)
+          { if (board[i][j] == 'o')
+              drawO(x + i*w +   settings.minorpad,  //x
+                    y + j*w +   settings.minorpad,  //y
+                          w - 2*settings.minorpad); //w
+            else if (board[i][j] == 'x')
+              drawX(x + i*w +   settings.minorpad,  //x
+                    y + j*w +   settings.minorpad,  //y
+                          w - 2*settings.minorpad); //w
+          }
+        }
+      }
+      function draw(gameboard, mouseX, mouseY)
       { context.fillStyle = settings.disabledColor;
+        context.strokeStyle = settings.strokeColor;
+        w = settings.width/3;
         if (gameboard.currenti != null)
         { context.fillRect(0, 0, settings.width, settings.width);
-          w = settings.width/3;
           context.clearRect(game.currenti*w, game.currentj*w, w, w);
         }
         else
@@ -209,10 +230,27 @@
         for (var i = 0; i < 3; i++)
         { for (var j = 0; j < 3; j++)
           { drawBoard(gameboard.boards[i][j],
-                      i*settings.width/3 +   settings.majorpad,  //x
-                      j*settings.width/3 +   settings.majorpad,  //y
-                        settings.width/3 - 2*settings.majorpad); //w
+                      i*w +   settings.majorpad,  //x
+                      j*w +   settings.majorpad,  //y
+                        w - 2*settings.majorpad); //w
           }
+        }
+        var coords;
+        if (mouseX != undefined)
+        { coords = translateCoords(mouseX, mouseY);
+          context.strokeStyle = settings.mouseoverColor;
+          var drawMark;
+          if (gameboard.currentMark == 'o')
+            drawMark = drawO;
+          else if (gameboard.currentMark == 'x')
+            drawMark = drawX;
+          var m = settings.minorpad;
+          var M = settings.majorpad;
+          var ww = (w-2*M)/3;
+          var pad = m+M;
+          drawMark(coords.boardi*w + coords.i*ww + pad,  //x
+                   coords.boardj*w + coords.j*ww + pad,  //y
+                                              ww - 2*m); //w
         }
       }
     </script>
@@ -231,15 +269,18 @@
     canvas.setAttribute('style', 'background: ' + settings.bgColor + ';');
     canvas.width = settings.width;
     canvas.height = settings.width;
+    context = canvas.getContext("2d");
     canvas.onclick = function (e)
-    { boardi = Math.floor(e.offsetX*3/settings.width);
-      boardj = Math.floor(e.offsetY*3/settings.width);
-      i = Math.floor(Math.floor(9*e.offsetX/settings.width)%3);
-      j = Math.floor(Math.floor(9*e.offsetY/settings.width)%3);
-      game.mark(boardi, boardj, i, j);
+    { coords = translateCoords(e.offsetX, e.offsetY);
+      game.mark(coords.boardi, coords.boardj, coords.i, coords.j);
       draw(game);
     }
-    context = canvas.getContext("2d");
+    canvas.onmousemove = function(e)
+    { draw(game, e.offsetX, e.offsetY);
+    }
+    canvas.onmouseout = function(e)
+    { draw(game);
+    }
     draw(game);
   </script>
 </html>
