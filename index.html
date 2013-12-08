@@ -235,22 +235,29 @@
                         w - 2*settings.majorpad); //w
           }
         }
+        // mouse-over hint
         var coords;
         if (mouseX != undefined)
         { coords = translateCoords(mouseX, mouseY);
-          context.strokeStyle = settings.mouseoverColor;
-          var drawMark;
-          if (gameboard.currentMark == 'o')
-            drawMark = drawO;
-          else if (gameboard.currentMark == 'x')
-            drawMark = drawX;
-          var m = settings.minorpad;
-          var M = settings.majorpad;
-          var ww = (w-2*M)/3;
-          var pad = m+M;
-          drawMark(coords.boardi*w + coords.i*ww + pad,  //x
-                   coords.boardj*w + coords.j*ww + pad,  //y
-                                              ww - 2*m); //w
+          if (!gameboard.metaboard.get(coords.boardi, coords.boardj) &&
+              !gameboard.boards[coords.boardi][coords.boardj].get(coords.i, coords.j) &&
+              (gameboard.currenti == null || (gameboard.currenti == coords.boardi &&
+                                              gameboard.currentj == coords.boardj )
+             ))
+          { context.strokeStyle = settings.mouseoverColor;
+            var drawMark;
+            if (gameboard.currentMark == 'o')
+              drawMark = drawO;
+            else if (gameboard.currentMark == 'x')
+              drawMark = drawX;
+            var m = settings.minorpad;
+            var M = settings.majorpad;
+            var ww = (w-2*M)/3;
+            var pad = m+M;
+            drawMark(coords.boardi*w + coords.i*ww + pad,  //x
+                     coords.boardj*w + coords.j*ww + pad,  //y
+                                                ww - 2*m); //w
+          }
         }
       }
     </script>
