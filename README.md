@@ -1,6 +1,6 @@
-Meta-TicTacToe-Test
-===================
+Meta-TicTacToe Web
+==================
 
-A simple single-file webpage implementation of meta tic-tac-toe.
+A simple webpage implementation of meta tic-tac-toe.
 
-http://madhatter6.github.io/Meta-TicTacToe-Test/
+http://madhatter6.github.io/Meta-TicTacToe-Web/
