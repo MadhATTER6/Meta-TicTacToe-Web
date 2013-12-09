@@ -17,6 +17,7 @@
         stroke1:   2,
         stroke2:   4,
         strokeColor: '#000',
+        strokeColor2: '#444',
         mouseoverColor: '888',
         disabledColor: '#ccc',
         bgColor: '#fff',
@@ -103,7 +104,7 @@
               (this.currenti == null ||
                 (boardi == this.currenti && boardj == this.currentj)
               ) &&
-              this.metaboard.get(boardi, boardj) == null &&
+              /*this.metaboard.get(boardi, boardj) == null &&*/
               this.boards[boardi][boardj].get(i, j) == null
              )
           { if (this.boards[boardi][boardj].set(i, j, this.currentMark))
@@ -156,14 +157,10 @@
         boardj = Math.floor(y*3/settings.width);
         i = Math.floor(Math.floor(9*x/settings.width)%3);
         j = Math.floor(Math.floor(9*y/settings.width)%3);
-        return { 0:      boardi,
-                 boardi: boardi,
-                 1:      boardj,
-                 boardj: boardj,
-                 2:      i,
-                 i:      i,
-                 3:      j,
-                 j:      j
+        return { 0: boardi, boardi: boardi,
+                 1: boardj, boardj: boardj,
+                 2: i,      i:      i,
+                 3: j,      j:      j
                }
       }
     </script>
@@ -209,7 +206,6 @@
       }
       function draw(gameboard, mouseX, mouseY)
       { context.fillStyle = settings.disabledColor;
-        context.strokeStyle = settings.strokeColor;
         w = settings.width/3;
         if (gameboard.currenti != null)
         { context.fillRect(0, 0, settings.width, settings.width);
@@ -217,15 +213,17 @@
         }
         else
         { context.clearRect(0, 0, settings.width, settings.width);
-          for (var i = 0; i < 3; i++)
-          { for (var j = 0; j < 3; j++)
-            { if (gameboard.metaboard[i][j])
-                context.fillRect(i*w, j*w, w, w);
-            }
-          }
+          // for (var i = 0; i < 3; i++)
+          // { for (var j = 0; j < 3; j++)
+          //   { if (gameboard.metaboard[i][j])
+          //       context.fillRect(i*w, j*w, w, w);
+          //   }
+          // }
         }
         context.lineWidth = settings.stroke2;
+        context.strokeStyle = settings.strokeColor2;
         drawBoard(gameboard.metaboard, 0, 0, settings.width);
+        context.strokeStyle = settings.strokeColor;
         context.lineWidth = settings.stroke1;
         for (var i = 0; i < 3; i++)
         { for (var j = 0; j < 3; j++)
@@ -239,7 +237,7 @@
         var coords;
         if (mouseX != undefined)
         { coords = translateCoords(mouseX, mouseY);
-          if (!gameboard.metaboard.get(coords.boardi, coords.boardj) &&
+          if (/*!gameboard.metaboard.get(coords.boardi, coords.boardj) &&*/
               !gameboard.boards[coords.boardi][coords.boardj].get(coords.i, coords.j) &&
               (gameboard.currenti == null || (gameboard.currenti == coords.boardi &&
                                               gameboard.currentj == coords.boardj )
