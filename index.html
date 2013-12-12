@@ -33,14 +33,16 @@
       { this[0] = [null, null, null];
         this[1] = [null, null, null];
         this[2] = [null, null, null];
+        this.won = false;
         this.get = function(i, j)
         { return this[i][j];
         }
         // Board.set returns true if this mark has won the board, false otherwise
         this.set = function(i, j, mark)
-        { if (0<=i && i<3 && 0<=j && j<3)
-            this[i][j] = mark;
-          else return false;
+        { if (0>i || i>2 || 0>j || j>2)
+            return false;
+          this[i][j] = mark;
+          if (this.won) return false;
           // across
           var count = 0;
           for (var jj = 0; jj < 3; jj++)
@@ -49,7 +51,9 @@
             else break;
           }
           if (count == 3)
+          { this.won = true
             return true;
+          }
           // down
           count = 0;
           for (var ii = 0; ii < 3; ii++)
@@ -58,18 +62,24 @@
             else break;
           }
           if (count == 3)
+          { this.won = true
             return true;
+          }
           // diagonal (i==j)
           if (i == j &&
               this[0][0] == mark &&
               this[1][1] == mark &&
               this[2][2] == mark)
+          { this.won = true
             return true;
+          }
           if (i+j == 2 &&
               this[0][2] == mark &&
               this[1][1] == mark &&
               this[2][0] == mark)
+          { this.won = true
             return true;
+          }
           return false;
         }
         this.printable = function(blank)
@@ -96,6 +106,7 @@
         this.currentMark = 'x';
         this.currenti = null;
         this.currentj = null;
+        this.won = false;
         this.nextMark = function()
         { this.currentMark = this.currentMark == 'x'?'o':'x';
         }
@@ -104,11 +115,16 @@
               (this.currenti == null ||
                 (boardi == this.currenti && boardj == this.currentj)
               ) &&
-              /*this.metaboard.get(boardi, boardj) == null &&*/
-              this.boards[boardi][boardj].get(i, j) == null
+              this.boards[boardi][boardj].get(i, j) == null &&
+              !this.won
              )
           { if (this.boards[boardi][boardj].set(i, j, this.currentMark))
-              this.metaboard.set(boardi, boardj, this.currentMark);
+              if(this.metaboard.set(boardi, boardj, this.currentMark))
+              { this.won = true;
+                this.currenti = null;
+                this.currentj = null;
+                return;
+              }
             if (!this.metaboard.get(i, j))
             { this.currenti = i;
               this.currentj = j;
@@ -212,13 +228,10 @@
           context.clearRect(game.currenti*w, game.currentj*w, w, w);
         }
         else
-        { context.clearRect(0, 0, settings.width, settings.width);
-          // for (var i = 0; i < 3; i++)
-          // { for (var j = 0; j < 3; j++)
-          //   { if (gameboard.metaboard[i][j])
-          //       context.fillRect(i*w, j*w, w, w);
-          //   }
-          // }
+        { if (gameboard.won)
+            context.fillRect(0, 0, settings.width, settings.width);
+          else
+            context.clearRect(0, 0, settings.width, settings.width);
         }
         context.lineWidth = settings.stroke2;
         context.strokeStyle = settings.strokeColor2;
@@ -235,7 +248,7 @@
         }
         // mouse-over hint
         var coords;
-        if (mouseX != undefined)
+        if (mouseX != undefined && !gameboard.won)
         { coords = translateCoords(mouseX, mouseY);
           if (/*!gameboard.metaboard.get(coords.boardi, coords.boardj) &&*/
               !gameboard.boards[coords.boardi][coords.boardj].get(coords.i, coords.j) &&
@@ -256,6 +269,13 @@
                      coords.boardj*w + coords.j*ww + pad,  //y
                                                 ww - 2*m); //w
           }
+        }
+        if (gameboard.won)
+        { context.lineWidth = settings.stroke2*2;
+          context.strokeStyle = settings.strokeColor;
+          (gameboard.currentMark=='x'?drawX:drawO)(settings.stroke2,
+                                                   settings.stroke2,
+                                                   settings.width - 2* settings.stroke2);
         }
       }
     </script>
